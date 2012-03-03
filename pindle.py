@@ -13,6 +13,7 @@ import pinboard
 import readability
 import smtplib
 import httplib2
+import re
 
 HTML_HEAD = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><META http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>'
 HTML_TAIL = '</body></html>'
@@ -21,11 +22,14 @@ def send_via_smtp(conf, toaddr, subj, body='', attach=None):
     smtp = conf['smtp']
 
     if attach:
+        # Turn the subject into a safe filename
+        filename = re.sub('[^a-zA-Z0-9_.() -]+', '', subj)
+
         # Amazon requires us to attach a document
         msg = MIMEMultipart()
         msg.attach(MIMEText(body))
         part = MIMEApplication(HTML_HEAD + attach.encode('utf-8') + HTML_TAIL)
-        part.add_header('Content-Disposition', 'attachment', filename=subj + '.html')
+        part.add_header('Content-Disposition', 'attachment', filename=filename + '.html')
         msg.attach(part)
     else:
         msg = MIMEText(body)
